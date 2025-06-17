@@ -1,0 +1,49 @@
+def hash_function(ic_number):
+    ic_str = str(ic_number)  # Convert IC number to string to manipulate individual digits
+    if len(ic_str) != 12:  # Ensure the IC number is exactly 12 digits
+        raise ValueError("IC Number must be 12 digits long.")
+    
+    chunk_size = 4  # Define chunk size of 4 digits
+    hash_code = sum(int(ic_str[i:i+chunk_size]) for i in range(0, len(ic_str), chunk_size))  # Folding sum of chunks
+    return hash_code  # Return the calculated hash code
+import random
+
+class HashTable:
+    def __init__(self, size):
+        self.size = size
+        self.table = [[] for _ in range(size)]  # List of empty lists for separate chaining
+
+    def insert(self, value):
+        index = hash_function(value) % self.size  # Compute index using hash function and table size
+        self.table[index].append(value)  # Append value to the appropriate list (handling collisions)
+        return index  # Return the index where the value was inserted
+
+# Generate random 12-digit IC numbers
+def generate_ic_number():
+    return ''.join(str(random.randint(0, 9)) for _ in range(12))  # Generate random IC number
+
+# Create hash tables with sizes 1009 and 2003
+hash_table_1 = HashTable(1009)
+hash_table_2 = HashTable(2003)
+
+# Inserting 1000 random IC numbers for 10 rounds
+collisions_1, collisions_2 = [], []
+
+for round_num in range(10):
+    coll_1 = 0
+    coll_2 = 0
+    for _ in range(1000):
+        ic_number = generate_ic_number()  # Generate random IC number
+        if len(hash_table_1.table[hash_table_1.insert(ic_number)]) > 1:
+            coll_1 += 1  # Increment collision counter for table 1
+        if len(hash_table_2.table[hash_table_2.insert(ic_number)]) > 1:
+            coll_2 += 1  # Increment collision counter for table 2
+    collisions_1.append(coll_1)
+    collisions_2.append(coll_2)
+
+# Calculate average collisions for both hash tables
+avg_collisions_1 = sum(collisions_1) / 10
+avg_collisions_2 = sum(collisions_2) / 10
+
+print(f"Average Collisions for HashTable 1: {avg_collisions_1}")
+print(f"Average Collisions for HashTable 2: {avg_collisions_2}")
