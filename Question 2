@@ -1,0 +1,154 @@
+# The UDGraph class represents an unweighted directed graph
+# The graph stores vertices and edges where the vertices represent people (users) and the edges represent "follows" relationships.
+
+class UDGraph:
+    def __init__(self):
+        """Initializes an empty graph represented by a dictionary."""
+        self.graph = {}  # The graph is a dictionary where each key is a vertex (user) and the value is a list of adjacent vertices (followed users)
+
+    def add_vertex(self, vertex):
+        """Adds a new vertex (user) to the graph if it doesn't already exist."""
+        if vertex not in self.graph:
+            self.graph[vertex] = []  # Adds an empty list for storing followers (outgoing edges)
+
+    def add_edge(self, start, end):
+        """Creates a directed edge (follow relationship) from the 'start' vertex (user) to the 'end' vertex (user)."""
+        # Ensure both the start and end vertices exist in the graph before adding the edge
+        if start in self.graph and end in self.graph:
+            self.graph[start].append(end)  # Adds the 'end' vertex to the list of followers of 'start' vertex
+        else:
+            print("One or both vertices not found.")  # Print error if either user does not exist in the graph
+
+    def list_outgoing_adjacent_vertex(self, vertex):
+        """Lists all the accounts followed by the given user (outgoing edges)."""
+        if vertex in self.graph:
+            return self.graph[vertex]  # Returns the list of followed accounts (outgoing edges)
+        else:
+            return "Vertex not found."  # Error message if the user does not exist in the graph
+
+
+# The Person class represents an individual user profile in the social media app
+# It stores information about the user's name, gender, biography, and privacy setting (public or private)
+
+class Person:
+    def __init__(self, name, gender, biography, privacy):
+        """Initializes a new Person object (user profile) with given attributes."""
+        self.name = name  # User's name
+        self.gender = gender  # User's gender
+        self.biography = biography  # A short biography of the user
+        self.privacy = privacy  # Privacy setting: "U" for public, "P" for private
+
+
+# The SlowGram class is the main class that handles the application logic for managing profiles and interactions in the social media app
+
+class SlowGram:
+    def __init__(self):
+        """Initializes the social media app with an empty graph."""
+        self.my_graph = UDGraph()  # Create an instance of UDGraph to represent the social media users and their relationships
+
+    def add_new_profile(self, name, gender, biography, privacy):
+        """Adds a new user profile to the social media app."""
+        person = Person(name, gender, biography, privacy)  # Create a new Person object
+        self.my_graph.add_vertex(person)  # Add the person (user) to the graph
+        return person  # Return the person object for further use
+
+    def display_profile(self, index):
+        """Displays the profile details of a specific user."""
+        person = list(self.my_graph.graph.keys())[index-1]  # Get the profile from the graph (list of all profiles)
+        if person.privacy == "U":  # If the user's profile is public
+            print(f"Name: {person.name}")
+            print(f"Biography: {person.biography}")
+        else:
+            print(f"{person.name} has a private profile.")  # Display private profile message if privacy is set to "P"
+
+    def add_follow(self, follower, followee):
+        """Creates a following relationship between two users."""
+        self.my_graph.add_edge(follower, followee)  # Add a directed edge from the follower to the followee in the graph
+
+
+# The main function of the program allows users to interact with the social media app via a menu system
+def main():
+    gram = SlowGram()  # Initialize the social media app
+
+    # Create 5 profiles for the app
+    karen = gram.add_new_profile("Karen", "F", "Just an ordinary woman", "U")
+    susy = gram.add_new_profile("Susy", "F", "Just a normal person", "U")
+    brian = gram.add_new_profile("Brian", "M", "Just an ordinary teenager", "U")
+    calvin = gram.add_new_profile("Calvin", "M", "Just an ordinary man", "U")
+    elon = gram.add_new_profile("Elon", "M", "Just a hardworking man", "U")
+
+    # Establish follow relationships (adding edges between profiles)
+    gram.add_follow(karen, susy)  # Karen follows Susy
+    gram.add_follow(karen, brian)  # Karen follows Brian
+    gram.add_follow(karen, elon)  # Karen follows Elon
+    gram.add_follow(elon, karen)  # Elon follows Karen
+    gram.add_follow(elon, calvin)  # Elon follows Calvin
+    gram.add_follow(brian, karen)  # Brian follows Karen
+    gram.add_follow(brian, susy)  # Brian follows Susy
+
+    # Menu-driven program for user interaction
+    while True:
+        print("\n**************************")
+        print("Welcome to Slow Gram, Your New Social Media App:")
+        print("**************************")
+        print("1. View names of all profiles")
+        print("2. View details for any profile")
+        print("3. View followers of any profile")
+        print("4. View followed accounts of any profile")
+        print("5. Quit")
+        print("**************************")
+
+        # Get user input for menu choice
+        choice = int(input("Enter your choice (1 - 4): "))
+
+        if choice == 1:
+            # View all profile names
+            print("\nView ALL Profile Names:")
+            profiles = list(gram.my_graph.graph.keys())  # Get list of all profiles (vertices in graph)
+            for i, person in enumerate(profiles, start=1):
+                print(f"{i}.) {person.name}")  # Print profile names
+        
+        elif choice == 2:
+            # View details for any profile
+            print("\nView Details for Any Profile:")
+            profiles = list(gram.my_graph.graph.keys())  # Get list of all profiles
+            for i, person in enumerate(profiles, start=1):
+                print(f"{i}.) {person.name}")  # Print profile names
+            index = int(input("Select whose profile to view (1 - 5): "))  # Get user's choice
+            gram.display_profile(index)  # Display selected profile details
+
+        elif choice == 3:
+            # View followers for any profile
+            print("\nView Followers for Any Profile:")
+            profiles = list(gram.my_graph.graph.keys())  # Get list of all profiles
+            for i, person in enumerate(profiles, start=1):
+                print(f"{i}.) {person.name}")  # Print profile names
+            index = int(input("Select whose profile to view followers (1 - 5): "))  # Get user's choice
+            person = list(gram.my_graph.graph.keys())[index-1]  # Get the selected person (profile)
+            followers = [follower.name for follower in gram.my_graph.graph if person in gram.my_graph.graph[follower]]  # Find followers
+            print(f"Follower List:")
+            for follower in followers:
+                print(f"- {follower}")  # Print each follower's name
+
+        elif choice == 4:
+            # View followed accounts for any profile
+            print("\nView Followed Accounts for Any Profile:")
+            profiles = list(gram.my_graph.graph.keys())  # Get list of all profiles
+            for i, person in enumerate(profiles, start=1):
+                print(f"{i}.) {person.name}")  # Print profile names
+            index = int(input("Select whose profile to view followings (1 - 5): "))  # Get user's choice
+            person = list(gram.my_graph.graph.keys())[index-1]  # Get the selected person (profile)
+            followings = gram.my_graph.list_outgoing_adjacent_vertex(person)  # Get followed accounts (outgoing edges)
+            print("Following List:")
+            for following in followings:
+                print(f"- {following.name}")  # Print each followed account's name
+
+        elif choice == 5:
+            break  # Exit the program
+
+        else:
+            print("Invalid choice, please try again.")  # Error message for invalid input
+
+# Run the program
+if __name__ == "__main__":
+    main()  # Call main function to run the app
