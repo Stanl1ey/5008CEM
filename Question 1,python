@@ -1,49 +1,82 @@
-def hash_function(ic_number):
-    ic_str = str(ic_number)  # Convert IC number to string to manipulate individual digits
-    if len(ic_str) != 12:  # Ensure the IC number is exactly 12 digits
-        raise ValueError("IC Number must be 12 digits long.")
-    
-    chunk_size = 4  # Define chunk size of 4 digits
-    hash_code = sum(int(ic_str[i:i+chunk_size]) for i in range(0, len(ic_str), chunk_size))  # Folding sum of chunks
-    return hash_code  # Return the calculated hash code
 import random
 
-class HashTable:
-    def __init__(self, size):
-        self.size = size
-        self.table = [[] for _ in range(size)]  # List of empty lists for separate chaining
+# Hash function using folding technique
+def hash_function(ic_number, table_size):
+    # Ensure the IC number is 12 digits (padding if necessary)
+    ic_str = str(ic_number).zfill(12)  # Converts IC number to string, ensuring it's 12 digits
+    
+    # Folding technique: Split the IC number into three 4-digit parts and sum them
+    part1 = int(ic_str[:4])  # First 4 digits
+    part2 = int(ic_str[4:8])  # Next 4 digits
+    part3 = int(ic_str[8:])  # Last 4 digits
+    
+    # Sum the parts and take modulus with table size
+    hash_code = (part1 + part2 + part3) % table_size  # Calculate hash code by summing parts and using modulus
+    return hash_code  # Return the computed hash code
 
-    def insert(self, value):
-        index = hash_function(value) % self.size  # Compute index using hash function and table size
-        self.table[index].append(value)  # Append value to the appropriate list (handling collisions)
-        return index  # Return the index where the value was inserted
+# Function to insert IC numbers into the table using separate chaining
+def insert_ic_number(ic_number, table, table_size):
+    hash_code = hash_function(ic_number, table_size)  # Call hash function to get the index
+    table[hash_code].append(ic_number)  # Insert IC number into the list at the hash index
 
-# Generate random 12-digit IC numbers
-def generate_ic_number():
-    return ''.join(str(random.randint(0, 9)) for _ in range(12))  # Generate random IC number
+# Function to calculate total collisions in the table
+def calculate_collisions(table, table_size):
+    total_collisions = 0  # Initialize collision counter
+    for i in range(table_size):  # Iterate through each index in the hash table
+        if len(table[i]) > 1:  # If there is more than one element at the index, it's a collision
+            total_collisions += len(table[i]) - 1  # Add the number of collisions (length of chain - 1)
+    return total_collisions  # Return total number of collisions
 
-# Create hash tables with sizes 1009 and 2003
-hash_table_1 = HashTable(1009)
-hash_table_2 = HashTable(2003)
+# Function to print results in a table format
+def print_results(collisions_table_1, collisions_table_2, avg_collisions_table_1, avg_collisions_table_2):
+    print(f"Total collisions for Table 1 over 10 rounds:")  # Print header for Table 1 collisions
+    print(f"{'Round':<6} {'Collisions'}")  # Print column labels
+    for i, collisions in enumerate(collisions_table_1, start=1):  # Loop through the collision data of Table 1
+        print(f"{i:<6} {collisions}")  # Print round number and collisions for each round
+    print(f"\nAverage collisions for Table 1: {avg_collisions_table_1:.1f}")  # Print average collisions for Table 1
 
-# Inserting 1000 random IC numbers for 10 rounds
-collisions_1, collisions_2 = [], []
+    print(f"\nTotal collisions for Table 2 over 10 rounds:")  # Print header for Table 2 collisions
+    print(f"{'Round':<6} {'Collisions'}")  # Print column labels
+    for i, collisions in enumerate(collisions_table_2, start=1):  # Loop through the collision data of Table 2
+        print(f"{i:<6} {collisions}")  # Print round number and collisions for each round
+    print(f"\nAverage collisions for Table 2: {avg_collisions_table_2:.1f}")  # Print average collisions for Table 2
 
-for round_num in range(10):
-    coll_1 = 0
-    coll_2 = 0
-    for _ in range(1000):
-        ic_number = generate_ic_number()  # Generate random IC number
-        if len(hash_table_1.table[hash_table_1.insert(ic_number)]) > 1:
-            coll_1 += 1  # Increment collision counter for table 1
-        if len(hash_table_2.table[hash_table_2.insert(ic_number)]) > 1:
-            coll_2 += 1  # Increment collision counter for table 2
-    collisions_1.append(coll_1)
-    collisions_2.append(coll_2)
+# Define the table sizes (number of buckets in the hash table)
+table_size_1 = 1009  # First hash table size
+table_size_2 = 2003  # Second hash table size
 
-# Calculate average collisions for both hash tables
-avg_collisions_1 = sum(collisions_1) / 10
-avg_collisions_2 = sum(collisions_2) / 10
+# Create empty hash tables with lists for separate chaining
+# Each index in the table will store a list, so collisions can be handled using chains (lists)
+hash_table_1 = [[] for _ in range(table_size_1)]  # Create hash table with 1009 buckets
+hash_table_2 = [[] for _ in range(table_size_2)]  # Create hash table with 2003 buckets
 
-print(f"Average Collisions for HashTable 1: {avg_collisions_1}")
-print(f"Average Collisions for HashTable 2: {avg_collisions_2}")
+# List to store total collisions for each round for both tables
+total_collisions_table_1 = []  # List to store collision count for Table 1
+total_collisions_table_2 = []  # List to store collision count for Table 2
+
+# Repeat the process for 10 rounds (i.e., simulate 10 hash table fills)
+for round_num in range(10):  # Loop for 10 rounds
+    # Reset tables for each round to ensure no previous data is carried over
+    hash_table_1 = [[] for _ in range(table_size_1)]  # Clear hash table 1
+    hash_table_2 = [[] for _ in range(table_size_2)]  # Clear hash table 2
+
+    # Insert 1000 randomly generated IC numbers into the tables for this round
+    for _ in range(1000):  # Loop to generate and insert 1000 IC numbers
+        ic_number = random.randint(100000000000, 999999999999)  # Generate a random 12-digit IC number
+        insert_ic_number(ic_number, hash_table_1, table_size_1)  # Insert into hash table 1
+        insert_ic_number(ic_number, hash_table_2, table_size_2)  # Insert into hash table 2
+    
+    # Calculate collisions for both tables after inserting the IC numbers
+    collisions_table_1 = calculate_collisions(hash_table_1, table_size_1)  # Calculate collisions for Table 1
+    collisions_table_2 = calculate_collisions(hash_table_2, table_size_2)  # Calculate collisions for Table 2
+
+    # Append the results of the collisions for the round to the respective lists
+    total_collisions_table_1.append(collisions_table_1)  # Add collisions count for Table 1 in this round
+    total_collisions_table_2.append(collisions_table_2)  # Add collisions count for Table 2 in this round
+
+# Calculate the average collisions for both tables over 10 rounds
+average_collisions_table_1 = sum(total_collisions_table_1) / 10  # Average collisions for Table 1
+average_collisions_table_2 = sum(total_collisions_table_2) / 10  # Average collisions for Table 2
+
+# Print the results
+print_results(total_collisions_table_1, total_collisions_table_2, average_collisions_table_1, average_collisions_table_2)
