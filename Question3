@@ -1,85 +1,85 @@
-import threading  # Importing threading library for multithreading
-import time  # Importing time library to measure time in nanoseconds
-import random  # Importing random library to generate random numbers
+import threading  # Importing the threading library to allow for multithreading (running tasks concurrently)
+import time  # Importing the time library to measure the time taken for operations in nanoseconds
+import random  # Importing the random library to generate random numbers for our tests
 
 # Function to generate 100 random numbers between 0 and 10000
 def generate_random_numbers():
-    return [random.randint(0, 10000) for _ in range(100)]  # List of random numbers
+    return [random.randint(0, 10000) for _ in range(100)]  # List comprehension to generate a list of 100 random numbers between 0 and 10000
 
 # Function to generate and process a set of random numbers (one of the three sets)
 def generate_and_process_set(set_number, mode=""):
-    start_time = time.time_ns()  # Record the start time in nanoseconds using time.time_ns()
-    random_numbers = generate_random_numbers()  # Generate random numbers using the previously defined function
+    start_time = time.time_ns()  # Record the start time in nanoseconds using time.time_ns(), useful for precise time measurement
+    random_numbers = generate_random_numbers()  # Generate 100 random numbers between 0 and 10000
     end_time = time.time_ns()  # Record the end time in nanoseconds
 
-    time_taken = end_time - start_time  # Calculate the time taken for this operation by subtracting start from end time
-    print(f"Set {set_number} ({mode}) took {time_taken} ns")  # Label time with the mode (Multithreading or Non-Multithreading)
-    return time_taken  # Return the time taken for this specific set of numbers
+    time_taken = end_time - start_time  # Calculate the time taken for the operation (subtract start time from end time)
+    print(f"Set {set_number} ({mode}) took {time_taken} ns")  # Print the time taken for the current set, including its mode (Multithreading or Non-Multithreading)
+    return time_taken  # Return the time taken for this specific set of numbers to the calling function
 
-# Function to run all 3 sets using multithreading
+# Function to run all 3 sets using multithreading (i.e., concurrently)
 def run_multithreading():
-    threads = []  # List to keep track of the threads
-    times = []  # List to store the time taken for each thread (set)
+    threads = []  # List to store the thread objects (used to keep track of threads)
+    times = []  # List to store the time taken for each thread (each set)
 
     # Create 3 separate threads to handle 3 sets of random number generation
     for i in range(1, 4):  # Loop to create 3 threads (one for each set)
-        thread = threading.Thread(target=lambda i=i: times.append(generate_and_process_set(i, "Multithreading")))  # Create a thread
+        thread = threading.Thread(target=lambda i=i: times.append(generate_and_process_set(i, "Multithreading")))  # Define the target function for the thread
         threads.append(thread)  # Add thread to the list of threads
-        thread.start()  # Start the thread, invoking the target function
+        thread.start()  # Start the thread, invoking the target function for generating and processing the set
 
-    # Wait for all threads to finish before proceeding
+    # Wait for all threads to finish before proceeding (thread.join() ensures that the main program waits for each thread)
     for thread in threads:
         thread.join()  # Ensure that the main program waits until all threads are done
 
-    return times  # Return the times for each set
+    return times  # Return the list of times for all three sets processed using multithreading
 
-# Function to run the sets without multithreading (sequentially)
+# Function to run the sets without multithreading (sequentially, one set at a time)
 def run_without_multithreading():
     times = []  # List to store time taken for each set
 
     # Sequentially run each set and store the time taken
-    for i in range(1, 4):  # Loop to process 3 sets
-        times.append(generate_and_process_set(i, "Non-Multithreading"))  # Add the time taken for the set to the list
+    for i in range(1, 4):  # Loop to process 3 sets one by one
+        times.append(generate_and_process_set(i, "Non-Multithreading"))  # Generate and process the set, append the time to the list
 
-    return times  # Return the times for each set
+    return times  # Return the list of times for all three sets processed sequentially
 
-# Function to run the experiment for 10 rounds
+# Function to run the experiment for 10 rounds (to compare multithreading vs non-multithreading performance)
 def experiment():
     # Initialize variables to store cumulative times for multithreading and non-multithreading
-    multithreading_total_time = 0
-    multithreading_avg_time = 0
-    non_multithreading_total_time = 0
-    non_multithreading_avg_time = 0
+    multithreading_total_time = 0  # Total time for multithreading across all rounds
+    multithreading_avg_time = 0  # Average time for multithreading across all rounds
+    non_multithreading_total_time = 0  # Total time for non-multithreading across all rounds
+    non_multithreading_avg_time = 0  # Average time for non-multithreading across all rounds
 
     # Run the experiment for 10 rounds to compare multithreading vs non-multithreading performance
     for round_num in range(10):  # Loop through 10 rounds
-        print(f"\nRound {round_num + 1}:")
+        print(f"\nRound {round_num + 1}:")  # Print the round number for clarity
 
         # Measure multithreading performance (run once per round)
         print("  Multithreading Results:")
-        multithreading_times = run_multithreading()
+        multithreading_times = run_multithreading()  # Run the multithreading function to process the sets concurrently
 
         # Measure non-multithreading performance (run once per round)
         print("  Non-Multithreading Results:")
-        non_multithreading_times = run_without_multithreading()
+        non_multithreading_times = run_without_multithreading()  # Run the non-multithreading function to process the sets sequentially
 
-        # Calculate and accumulate the total time for multithreading
-        multithreading_total_time += sum(multithreading_times)
-        # Calculate and accumulate the total time for non-multithreading
-        non_multithreading_total_time += sum(non_multithreading_times)
+        # Accumulate the total time for multithreading
+        multithreading_total_time += sum(multithreading_times)  # Add the time taken for each round's multithreading results
+        # Accumulate the total time for non-multithreading
+        non_multithreading_total_time += sum(non_multithreading_times)  # Add the time taken for each round's non-multithreading results
 
-        # Calculate the average time for multithreading
-        multithreading_avg_time += sum(multithreading_times) / len(multithreading_times)
-        # Calculate the average time for non-multithreading
-        non_multithreading_avg_time += sum(non_multithreading_times) / len(non_multithreading_times)
+        # Accumulate the average time for multithreading (per round)
+        multithreading_avg_time += sum(multithreading_times) / len(multithreading_times)  # Average time for multithreading
+        # Accumulate the average time for non-multithreading (per round)
+        non_multithreading_avg_time += sum(non_multithreading_times) / len(non_multithreading_times)  # Average time for non-multithreading
 
     # After 10 rounds, calculate the final total and average times for both methods
     print("\nSummary of Results:")
-    print(f"Multithreading Total Time: {multithreading_total_time} ns")
-    print(f"Non-Multithreading Total Time: {non_multithreading_total_time} ns")
-    print(f"Multithreading Average Time: {multithreading_avg_time / 10} ns")
-    print(f"Non-Multithreading Average Time: {non_multithreading_avg_time / 10} ns")
-    print("=== Code Execution Successful ===")
+    print(f"Multithreading Total Time: {multithreading_total_time} ns")  # Print the total time for multithreading across all rounds
+    print(f"Non-Multithreading Total Time: {non_multithreading_total_time} ns")  # Print the total time for non-multithreading across all rounds
+    print(f"Multithreading Average Time: {multithreading_avg_time / 10} ns")  # Print the average time for multithreading
+    print(f"Non-Multithreading Average Time: {non_multithreading_avg_time / 10} ns")  # Print the average time for non-multithreading
+    print("=== Code Execution Successful ===")  # Indicate that the experiment has successfully run
 
 # Run the experiment
 experiment()  # Call the function to run the experiment and display the results
