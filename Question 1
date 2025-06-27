@@ -79,4 +79,4 @@ average_collisions_table_1 = sum(total_collisions_table_1) / 10  # Average colli
 average_collisions_table_2 = sum(total_collisions_table_2) / 10  # Average collisions for Table 2
 
 # Print the results
-print_results(total_collisions_table_1, total_collisions_table_2, average_collisions_table_1, average_collisions_table_2)
+print_results(total_collisions_table_1, total_collisions_table_2, average_collisions_table_1, average_collisions_table_2)   
